@@ -1,5 +1,6 @@
-from yo.cli import cli
+from yo import cli
 import click
+
 
 @cli.command()
 def run():

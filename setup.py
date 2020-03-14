@@ -1,15 +1,15 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='yo',
+    name='my-yo',
     version='0.1',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'Click',
+        'Click'
     ],
     entry_points='''
         [console_scripts]
-        yo=yo.cli:cli
+        yo=yo:cli
     ''',
 )
