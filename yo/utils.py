@@ -28,3 +28,6 @@ def get_jira_url(jira_id_str):
 
 def get_jira_id(jira_id_str):
     return 'C123'
+
+def get_bb_url(bb_str):
+    return 'http://www.bing.com'

@@ -4,7 +4,7 @@ import click
 
 from yo.utils import pass_environment
 
-enable_modules = ['init', 'build', 'jira', 'go', 'check', 'search']
+enable_modules = ['init', 'build', 'jira', 'go', 'check', 'search', 'bb']
 
 # if set YO_DEBUG environment, will show the example commands
 if os.environ.get('YO_DEBUG', 'false').lower() == 'true':
