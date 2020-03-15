@@ -9,20 +9,22 @@ class Environment(object):
         self.verbose = False
         self.home = os.getcwd()
 
-    def log(self, msg, *args):
-        """Logs a message to stderr."""
-        if args:
-            msg %= args
-        click.echo(msg, file=sys.stderr)
+    def log(self, msg, **kwargs):
+        """Logs a message."""
+        click.secho(msg, **kwargs)
 
-    def vlog(self, msg, *args):
+    def vlog(self, msg, **kwargs):
         """Logs a message to stderr only if verbose is enabled."""
         if self.verbose:
-            self.log(msg, *args)
+            self.log(msg, **kwargs)
 
 
 pass_environment = click.make_pass_decorator(Environment, ensure=True)
 
 
-def get_jira_id(jira_id_str):
+def get_jira_url(jira_id_str):
     return 'http://www.bing.com'
+
+
+def get_jira_id(jira_id_str):
+    return 'C123'

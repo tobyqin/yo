@@ -4,7 +4,7 @@ import click
 
 from yo.utils import pass_environment
 
-enable_modules = ['init', 'build', 'jira']
+enable_modules = ['init', 'build', 'jira', 'go', 'check', 'search']
 
 # if set YO_DEBUG environment, will show the example commands
 if os.environ.get('YO_DEBUG', 'false').lower() == 'true':
@@ -16,6 +16,15 @@ if os.environ.get('YO_DEBUG', 'false').lower() == 'true':
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode.")
 @pass_environment
 def cli(env, verbose):
+    """\b
+ __   __  _______
+|  | |  ||       |
+|  |_|  ||   _   |
+|       ||  | |  |
+|_     _||  |_|  |
+  |   |  |       |
+  |___|  |_______|  Make life easy.
+    """
     env.verbose = verbose
 
 
