@@ -1,6 +1,7 @@
 import click
 
 from yo.utils import pass_environment
+import sys
 
 
 @click.group(invoke_without_command=True)
@@ -34,3 +35,12 @@ def use_args(env, name):
 @click.option('-d', '--debug', default=False)
 def use_option(env, debug):
     env.log(f'yo ~ debug is {debug}')
+
+
+@example.command()
+@click.argument('args', nargs=-1)
+def multi_args(args):
+    ctx = click.get_current_context()  # get context
+    assert isinstance(ctx, click.core.Context)
+    click.echo(sys.argv)
+    click.echo(args)
