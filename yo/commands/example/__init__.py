@@ -37,7 +37,7 @@ def use_option(env, debug):
     env.log(f'yo ~ debug is {debug}')
 
 
-@example.command()
+@example.command(context_settings=dict(ignore_unknown_options=True))
 @click.argument('args', nargs=-1)
 def multi_args(args):
     ctx = click.get_current_context()  # get context
