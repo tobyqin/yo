@@ -2,6 +2,7 @@ import click
 
 from yo.utils import pass_environment
 import sys
+import os
 
 
 @click.group(invoke_without_command=True)
@@ -44,3 +45,15 @@ def multi_args(args):
     assert isinstance(ctx, click.core.Context)
     click.echo(sys.argv)
     click.echo(args)
+
+
+@example.command(context_settings=dict(ignore_unknown_options=True))
+@click.argument('args', nargs=-1)
+def gen_cli(args):
+    """command explain"""
+    ctx = click.get_current_context()  # get context
+    assert isinstance(ctx, click.core.Context)
+    # debug log invoke target and args
+    cmd = 'invoke target here'
+    cmd += ' {}'.format(' '.join(args))
+    os.system(cmd)
