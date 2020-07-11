@@ -98,3 +98,5 @@ uploads/
 *.db3
 
 .DS_Store
+external/
+internal/

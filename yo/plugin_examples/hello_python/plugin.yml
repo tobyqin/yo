@@ -1,0 +1,15 @@
+name: hello-python
+version: 1.0
+author: toby
+description: a python plugin example.
+
+enabled: false
+type: shell
+
+command-group:
+  name: hello
+  description: comment to descripe hello command group.
+  commands:
+    - name: python
+      description: this is a hello from python plugin
+      invoke: .\hello.py
