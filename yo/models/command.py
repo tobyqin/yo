@@ -106,6 +106,7 @@ def {self.name}():
 
         if write_file:
             cli_module_path = config.yo_cli_external / f'{self.name}.py'
+            config.yo_cli_external.mkdir(parents=True, exist_ok=True)
             cli_module_path.write_text(self.command_module_content)
 
 
