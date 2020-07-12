@@ -82,6 +82,18 @@ def reload():
         logger.log(info)
 
 
+@plugin.command()
+def publish():
+    """publish a plugin to plugin center and share to others"""
+    logger.log('Yo~, feature not ready yet :(')
+
+
+@plugin.command()
+def install():
+    """install a plugin from plugin center."""
+    logger.log('Yo~, feature not ready yet :)')
+
+
 def _clear_external_cli(print_log=True):
     for _cli in config.yo_cli_external.glob('*.py'):
         if not _cli.stem.startswith('_'):
