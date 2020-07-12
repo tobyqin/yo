@@ -1,4 +1,3 @@
-name: hello-group
 version: 1.0
 author: toby
 description: a plugin example to invoke as group command directly.

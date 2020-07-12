@@ -31,6 +31,7 @@ class Plugin():
             plugin_yaml = plugin_dir / 'plugin.yml'
             with open(str(plugin_yaml)) as f:
                 plugin_info = full_load(f)
+                plugin_info['name'] = plugin_dir.stem
                 plugin = Plugin(**plugin_info)
         except Exception as e:
             plugin.name = plugin_dir.stem
@@ -42,6 +43,7 @@ class Plugin():
     def validate(self):
         """validate the plugin is ready to import."""
         try:
+            assert ' ' not in self.name, 'Should not use blank space in plugin folder name.'
             assert self.enabled, 'Plugin is disabled.'
             self._build_command_group_obj()
             assert self.command_group_obj.name, 'Failed to get command group name.'
