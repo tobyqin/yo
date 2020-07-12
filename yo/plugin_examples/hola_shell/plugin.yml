@@ -1,0 +1,12 @@
+name: hola-shell
+version: 1.0
+author: toby
+description: a shell plugin example, without description in command group and command.
+enabled: false
+
+command-group:
+  name: hola
+  commands:
+    - name: shell
+      type: shell
+      invoke: hello.sh

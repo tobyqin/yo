@@ -43,6 +43,8 @@ class Plugin():
         """validate the plugin is ready to import."""
         try:
             self._build_command_group_obj()
+            assert self.command_group_obj.name, 'Failed to get command group name.'
+            self.command_group_obj.generate_cli(write_file=False)
         except Exception as e:
             self.error = detail_error(e)
 

@@ -1,0 +1,11 @@
+name: hello-group
+version: 1.0
+author: toby
+description: a plugin example to invoke as group command directly.
+enabled: true
+
+command-group:
+  name: hello
+  description: will invoke group command directly.
+  type: python
+  invoke: hello.py

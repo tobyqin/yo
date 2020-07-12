@@ -1,6 +1,6 @@
 import os
 
-from yo import config
+from yo import config, logger
 
 
 class CommandTypes():
@@ -14,26 +14,61 @@ class CommandTypes():
     sql = 'sql'
 
 
-class CommandGroup():
+class CommandBase():
+
+    def __init__(self):
+        self.description = None
+        self.from_plugin = None
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+    def build(self, **kwargs):
+        pass
+
+    def validate(self, **kwargs):
+        pass
+
+    def generate_cli(self, **kwargs):
+        pass
+
+    def better_comment(self):
+        if self.description:
+            return f'{self.description} [{self.from_plugin.id()}]'
+        else:
+            author = f'by {self.from_plugin.author}' if self.from_plugin.author else ''
+            return f'command from plugin: {self.from_plugin.id()} {author}'
+
+
+class CommandGroup(CommandBase):
 
     def __init__(self, **kwargs):
-        self.name = kwargs.get('name')
-        self.description = kwargs.get('description')
-        self.invoke = kwargs.get('invoke', None)
+        super(CommandGroup, self).__init__()
+        self.name = kwargs.get('name', '')
+        self.description = kwargs.get('description', '').strip()
+        self.invoke = kwargs.get('invoke', '').strip()
         self.type = kwargs.get('type', CommandTypes.shell)
         self.from_plugin = kwargs.get('from_plugin', None)
         self.commands = [Command.build(c, self.from_plugin) for c in kwargs.get('commands', [])]
         self.command_module_content = ''
-
-    def __repr__(self):
-        return str(self.__dict__)
 
     def build(cmd_group_kwargs: dict, from_plugin) -> 'CommandGroup':
         if cmd_group_kwargs:
             cmd_group_kwargs['from_plugin'] = from_plugin
             return CommandGroup(**cmd_group_kwargs)
 
+    def validate(self):
+        self.name = self.name.strip()
+        assert self.name and ' ' not in self.name, f'Invalid command name: {self}'
+
+        if not self.description:
+            logger.log(f'Warn: no description for: {self.name}')
+
+        for cmd in self.commands:
+            cmd.validate()
+
     def generate_cli(self, write_file=True):
+        self.validate()
 
         def generate_imports():
             self.command_module_content += """
@@ -48,7 +83,7 @@ from yo.utils import logger
                 self.command_module_content += f"""
 @click.group()
 def {self.name}():
-    '''{self.description}'''
+    '''{self.better_comment()}'''
     pass
 """
             else:
@@ -56,15 +91,18 @@ def {self.name}():
                 self.command_module_content += f"""
 @click.group(invoke_without_command=True)
 def {self.name}():
-    '''{self.description}'''
+    '''{self.better_comment()}'''
+    ctx = click.get_current_context()
     if not ctx.invoked_subcommand:
-        os.system('{invoke_target}')
+        cmd = '{invoke_target}'
+        os.system({get_cmd_exec_prefix(self.type)}cmd)
 """
 
         def generate_commands():
             for cmd in self.commands:
                 self.command_module_content += cmd.generate_cli(self.name)
 
+        self.command_module_content = ''
         generate_imports()
         generate_group()
         generate_commands()
@@ -74,12 +112,13 @@ def {self.name}():
             cli_module_path.write_text(self.command_module_content)
 
 
-class Command():
+class Command(CommandBase):
 
     def __init__(self, **kwargs):
-        self.name = kwargs.get('name', '')
-        self.description = kwargs.get('description', '')
-        self.invoke = kwargs.get('invoke', '')
+        super(Command, self).__init__()
+        self.name = kwargs.get('name', '').strip()
+        self.description = kwargs.get('description', '').strip()
+        self.invoke = kwargs.get('invoke', '').strip()
         self.type = kwargs.get('type', CommandTypes.shell)
         self.from_plugin = kwargs.get('from_plugin', None)
 
@@ -100,12 +139,19 @@ class Command():
 @{group}.command(context_settings=dict(ignore_unknown_options=True))
 @click.argument('args', nargs=-1)
 def {self.name}(args):
-    '''{self.description}'''
+    '''{self.better_comment()}'''
     logger.vlog(f'Invoke: {self.invoke} => {invoke_target} ' + str(args) )
     cmd = '{invoke_target} '
     cmd += ' '.join(args)
     os.system({get_cmd_exec_prefix(self.type)}cmd)
 """
+
+    def validate(self):
+        assert self.name, f'Invalid command name: {self.name}'
+        assert self.invoke, f'No `invoke` found for command: {self.name}'
+
+        if not self.description:
+            logger.log(f'Warn: no description for: {self.name}')
 
 
 def build_invoke_target(origin_invoke: str, plugin_dir: str):
