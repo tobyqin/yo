@@ -1,3 +1,6 @@
+"""
+Load plugins to yo.
+"""
 from yo.config import config
 from yo.utils import get_disable_plugins
 

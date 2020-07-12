@@ -1,0 +1,15 @@
+name: hello-cmd
+version: 1.0
+author: toby
+description: a shell plugin example.
+
+enabled: false
+type: shell
+
+command-group:
+  name: hello
+  description: comment to descripe hello command group.
+  commands:
+    - name: cmd
+      description: this is a hello from batch command plugin
+      invoke: .\hello.cmd
