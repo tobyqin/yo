@@ -19,15 +19,21 @@ def load_internal_plugins():
 
 
 def load_external_plugins():
-    plugins = _get_plugins(config.yo_plugin_external)
+    plugins = _get_plugins(config.yo_plugin_external, as_single_file=True)
+    print(plugins)
     _dynamic_load('yo.plugins.external', plugins)
 
 
-def _get_plugins(plugin_folder):
+def _get_plugins(plugin_folder, as_single_file=False):
     """get plugin module from internal plugin folder."""
     plugins = []
     for plugin_module in plugin_folder.glob('*'):
-        if plugin_module.is_dir() and not plugin_module.name.startswith('_'):
+        if as_single_file:
+            if plugin_module.is_file() \
+                    and not plugin_module.name.startswith('_') \
+                    and plugin_module.name.endswith('.py'):
+                plugins.append(plugin_module.stem)
+        elif plugin_module.is_dir() and not plugin_module.name.startswith('_'):
             plugins.append(plugin_module.stem)
 
     return plugins

@@ -10,3 +10,4 @@ class Config():
     yo_plugin_example_folder = yo_dir / 'plugin_examples'
     yo_plugin_internal = yo_plugin_folder / 'internal'
     yo_plugin_external = yo_plugin_folder / 'external'
+    yo_home = 'https://github.com/tobyqin/yo'

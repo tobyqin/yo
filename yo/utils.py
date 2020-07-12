@@ -1,10 +1,11 @@
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-import shutil
+
 import click
 
 from yo.models.logger import Logger
@@ -166,3 +167,7 @@ def copy_and_overwrite(from_path, to_path):
     if os.path.exists(to_path):
         shutil.rmtree(to_path)
     shutil.copytree(from_path, to_path)
+
+
+def detail_error(exception: Exception):
+    return f'{type(exception).__name__}: {exception}'
