@@ -125,7 +125,8 @@ def build_invoke_target(origin_invoke: str, plugin_dir: str):
 
 
 def get_cmd_exec_prefix(cli_type: str):
+    """command prefix will like: `python xxx.py` """
     if cli_type == CommandTypes.shell:
         return ''
     else:
-        return f'"{cli_type} "+'
+        return f'"{cli_type} " + '

@@ -6,7 +6,7 @@ enabled: false
 
 command-group:
   name: hello
-  description: comment to descripe hello command group.
+  description: comment to describe hello command group.
   commands:
     - name: shell
       type: shell
