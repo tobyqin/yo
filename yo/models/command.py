@@ -14,10 +14,13 @@ class CommandTypes():
     sql = 'sql'
 
 
-class CommandBase():
+class ICommand():
 
     def __init__(self):
-        self.description = None
+        self.name = ''
+        self.description = ''
+        self.invoke = ''
+        self.type = ''
         self.from_plugin = None
 
     def __repr__(self):
@@ -40,7 +43,7 @@ class CommandBase():
             return f'command from plugin: {self.from_plugin.id()} {author}'
 
 
-class CommandGroup(CommandBase):
+class CommandGroup(ICommand):
 
     def __init__(self, **kwargs):
         super(CommandGroup, self).__init__()
@@ -84,7 +87,7 @@ def {self.name}():
     pass
 """
             else:
-                invoke_target = build_invoke_target(self.invoke, self.from_plugin.from_dir)
+                invoke_target = _build_invoke_target(self.invoke, self.from_plugin.from_dir)
                 self.command_module_content += f"""
 @click.group(invoke_without_command=True)
 def {self.name}():
@@ -92,7 +95,7 @@ def {self.name}():
     ctx = click.get_current_context()
     if not ctx.invoked_subcommand:
         cmd = '{invoke_target}'
-        os.system({get_cmd_exec_prefix(self.type)}cmd)
+        os.system({_get_cmd_exec_prefix(self.type)}cmd)
 """
 
         def generate_commands():
@@ -110,7 +113,7 @@ def {self.name}():
             cli_module_path.write_text(self.command_module_content)
 
 
-class Command(CommandBase):
+class Command(ICommand):
 
     def __init__(self, **kwargs):
         super(Command, self).__init__()
@@ -132,7 +135,7 @@ class Command(CommandBase):
     def generate_cli(self, group):
         from yo.models.plugin import Plugin
         assert isinstance(self.from_plugin, Plugin)
-        invoke_target = build_invoke_target(self.invoke, self.from_plugin.from_dir)
+        invoke_target = _build_invoke_target(self.invoke, self.from_plugin.from_dir)
         return f"""
 @{group}.command(context_settings=dict(ignore_unknown_options=True))
 @click.argument('args', nargs=-1)
@@ -141,7 +144,7 @@ def {self.name}(args):
     logger.vlog(f'Invoke: {self.invoke} => {invoke_target} ' + str(args) )
     cmd = '{invoke_target} '
     cmd += ' '.join(args)
-    os.system({get_cmd_exec_prefix(self.type)}cmd)
+    os.system({_get_cmd_exec_prefix(self.type)}cmd)
 """
 
     def validate(self):
@@ -149,7 +152,7 @@ def {self.name}(args):
         assert self.invoke, f'No `invoke` found for command: {self.name}'
 
 
-def build_invoke_target(origin_invoke: str, plugin_dir: str):
+def _build_invoke_target(origin_invoke: str, plugin_dir: str):
     """Ensure the invoke target is correct."""
     assert origin_invoke, 'invoke target should not be empty!'
     cmd_parts = origin_invoke.split(' ')
@@ -165,7 +168,7 @@ def build_invoke_target(origin_invoke: str, plugin_dir: str):
         return origin_invoke
 
 
-def get_cmd_exec_prefix(cli_type: str):
+def _get_cmd_exec_prefix(cli_type: str):
     """command prefix will like: `python xxx.py` """
     if cli_type == CommandTypes.shell:
         return ''

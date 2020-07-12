@@ -23,13 +23,13 @@ def get_external_cli():
 def load_internal_cli():
     cli_modules = get_internal_cli()
     cli_modules = [p for p in cli_modules if p not in DISABLE_PLUGIN_CLI]
-    _dynamic_load('yo.plugin_cli.internal', cli_modules)
+    _dynamic_load(f'yo.{config.yo_cli_module_name}.internal', cli_modules)
 
 
 def load_external_cli():
     try:
         cli_modules = get_external_cli()
-        _dynamic_load('yo.plugin_cli.external', cli_modules)
+        _dynamic_load(f'yo.{config.yo_cli_module_name}.external', cli_modules)
     except Exception as e:
         logger.log(detail_error(e))
         logger.log('Failed to load external plugins cli, please try `yo plugin reload`')

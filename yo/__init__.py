@@ -2,8 +2,8 @@ import os
 
 import click
 
+from yo.commands.loader import load_cli
 from yo.config import config
-from yo.plugin_cli.loader import load_cli
 from yo.utils import logger
 
 

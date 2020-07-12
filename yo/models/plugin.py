@@ -2,6 +2,7 @@ from pathlib import Path
 
 from yaml import full_load
 
+from yo import config
 from yo.models.command import CommandGroup
 from yo.utils import detail_error
 
@@ -74,3 +75,14 @@ class Plugin():
 
 class PluginSettings():
     pass
+
+
+def get_user_plugins():
+    plugins = []
+    if config.user_plugin_folder.exists():
+        for plugin_folder in config.user_plugin_folder.glob('*'):
+            if plugin_folder.is_dir():
+                plugin = Plugin.load_from(plugin_folder)
+                plugins.append(plugin)
+
+    return plugins

@@ -1,18 +1,23 @@
-from pathlib import Path
-
 from yo import cli
+from yo.commands.loader import get_external_cli, get_internal_cli
 from yo.config import config
-from yo.models.plugin import Plugin
-from yo.plugin_cli.loader import get_external_cli, get_internal_cli
+from yo.models.plugin import Plugin, get_user_plugins
 from yo.utils import logger, copy_and_overwrite, detail_error
-
-USER_PLUGIN_FOLDER = Path.home() / 'yo/plugins'
 
 
 @cli.group()
 def plugin():
     """commands to list and load plugins."""
     pass
+
+
+@plugin.command()
+def init():
+    """Init user plugins directory."""
+    logger.log(f'Initialize plugin directory: {config.user_plugin_folder}')
+    config.user_plugin_folder.mkdir(parents=True, exist_ok=True)
+    for example in config.yo_plugin_example_folder.glob('*'):
+        _init_example(example.stem)
 
 
 @plugin.command()
@@ -43,17 +48,6 @@ def list():
 def clear():
     """clear all registered plugins."""
     _clear_external_cli()
-
-
-def get_user_plugins():
-    plugins = []
-    if config.user_plugin_folder.exists():
-        for plugin_folder in config.user_plugin_folder.glob('*'):
-            if plugin_folder.is_dir():
-                plugin = Plugin.load_from(plugin_folder)
-                plugins.append(plugin)
-
-    return plugins
 
 
 @plugin.command()
@@ -115,15 +109,6 @@ def _merge_cmd_obj(cmd_group, cmds):
     # TODO: should validate duplicate commands
     cmd_group.commands.extend(cmds)
     return cmd_group
-
-
-@plugin.command()
-def init():
-    """Init user plugins directory."""
-    logger.log(f'Initialize plugin directory: {config.user_plugin_folder}')
-    config.user_plugin_folder.mkdir(parents=True, exist_ok=True)
-    for example in config.yo_plugin_example_folder.glob('*'):
-        _init_example(example.stem)
 
 
 def _init_example(example_name):
