@@ -108,7 +108,7 @@ def {self.name}():
         generate_commands()
 
         if write_file:
-            cli_module_path = config.yo_plugin_external / f'{self.name}.py'
+            cli_module_path = config.yo_cli_external / f'{self.name}.py'
             cli_module_path.write_text(self.command_module_content)
 
 

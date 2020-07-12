@@ -4,6 +4,7 @@ from yo import cli
 from yo.config import config
 from yo.models.command import CommandGroup
 from yo.models.plugin import Plugin
+from yo.plugin_cli.loader import get_external_cli, get_internal_cli
 from yo.utils import logger, copy_and_overwrite
 
 USER_PLUGIN_FOLDER = Path.home() / 'yo/plugins'
@@ -18,7 +19,14 @@ def plugin():
 @plugin.command()
 def list():
     """list all plugins"""
-    pass
+    internal_plugins = get_internal_cli()
+    external_plugins = get_external_cli()
+
+    output_result = 'External plugins: \n'
+    output_result += '\n'.join(external_plugins)
+    output_result += '\n\nInternal plugins:\n'
+    output_result += '\n'.join(internal_plugins)
+    logger.log(output_result)
 
 
 @plugin.command()

@@ -155,7 +155,7 @@ def run_command(command, wait=True):
     return success, output
 
 
-def get_disable_plugins():
+def get_disabled_cli_modules():
     names = []
     if os.environ.get('YO_DEBUG', 'false').lower() == 'false':
         names.append('example')

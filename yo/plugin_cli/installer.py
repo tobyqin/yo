@@ -1,5 +1,5 @@
 """
-Install and update plugins.
+Install and update plugins cli.
 """
 
 

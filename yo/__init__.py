@@ -3,7 +3,7 @@ import os
 import click
 
 from yo.config import config
-from yo.plugins.loader import load_plugins
+from yo.plugin_cli.loader import load_cli
 from yo.utils import logger
 
 
@@ -27,4 +27,4 @@ def cli(ctx, verbose):
 
 
 config.cli = cli
-load_plugins()
+load_cli()
