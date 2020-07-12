@@ -42,6 +42,7 @@ class Plugin():
     def validate(self):
         """validate the plugin is ready to import."""
         try:
+            assert self.enabled, 'Plugin is disabled.'
             self._build_command_group_obj()
             assert self.command_group_obj.name, 'Failed to get command group name.'
             self.command_group_obj.generate_cli(write_file=False)

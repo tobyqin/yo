@@ -2,10 +2,9 @@ from pathlib import Path
 
 from yo import cli
 from yo.config import config
-from yo.models.command import CommandGroup
 from yo.models.plugin import Plugin
 from yo.plugin_cli.loader import get_external_cli, get_internal_cli
-from yo.utils import logger, copy_and_overwrite
+from yo.utils import logger, copy_and_overwrite, detail_error
 
 USER_PLUGIN_FOLDER = Path.home() / 'yo/plugins'
 
@@ -17,44 +16,84 @@ def plugin():
 
 
 @plugin.command()
-def list():
-    """list all plugins"""
+def list_cli():
+    """list all cli modules"""
     internal_plugins = get_internal_cli()
     external_plugins = get_external_cli()
 
-    output_result = 'External plugins: \n'
+    output_result = 'External cli: \n'
     output_result += '\n'.join(external_plugins)
-    output_result += '\n\nInternal plugins:\n'
+    output_result += '\n\nInternal cli:\n'
     output_result += '\n'.join(internal_plugins)
     logger.log(output_result)
 
 
 @plugin.command()
-def reload():
-    """reload all plugins"""
+def list():
+    """list all installed plugins"""
+    plugins = get_user_plugins()
+    plugin_names = [p.id() for p in plugins]
+
+    output_result = f'User plugins (from {config.user_plugin_folder}): \n'
+    output_result += '\n'.join(plugin_names)
+    logger.log(output_result)
+
+
+@plugin.command()
+def clear():
+    """clear all registered plugins."""
+    _clear_external_cli()
+
+
+def get_user_plugins():
     plugins = []
-    cmd_groups = []
     if config.user_plugin_folder.exists():
         for plugin_folder in config.user_plugin_folder.glob('*'):
             if plugin_folder.is_dir():
                 plugin = Plugin.load_from(plugin_folder)
                 plugins.append(plugin)
 
+    return plugins
+
+
+@plugin.command()
+def reload():
+    """reload all plugins"""
+    _clear_external_cli(print_log=False)
+
+    plugins = get_user_plugins()
+    cmd_groups = []
+
     for plugin in plugins:
+        load_info = f'Loading plugin: {plugin.id()} => '
         assert isinstance(plugin, Plugin)
         plugin.validate()
         if plugin.error:
-            logger.log(f'Failed to load {plugin.name}: {plugin.error}')
+            logger.log(f'{load_info}{plugin.error}')
         else:
-            logger.log(f'Loading plugin: {plugin.id()}')
+            logger.log(f'{load_info}OK.')
             logger.vlog(f'Plugin detail: {plugin.__dict__}')
             cmd_groups = _merge_command_groups(cmd_groups, plugin.command_group_obj)
 
     logger.vlog(f'All command groups: {cmd_groups}')
     for cmd_group in cmd_groups:
-        logger.log(f'Register command group: {cmd_group.name}')
-        assert isinstance(cmd_group, CommandGroup)
-        cmd_group.generate_cli()
+        info = f'Register command group: {cmd_group.name} => '
+        internal_cli = get_internal_cli()
+        try:
+            assert cmd_group.name not in internal_cli, f'Conflicted with internal commands: {internal_cli}'
+            cmd_group.generate_cli()
+            info += 'OK.'
+        except Exception as e:
+            info += detail_error(e)
+        logger.log(info)
+
+
+def _clear_external_cli(print_log=True):
+    for _cli in config.yo_cli_external.glob('*.py'):
+        if not _cli.stem.startswith('_'):
+            if print_log:
+                logger.log(f'Clear plugin command: {_cli.stem}')
+            _cli.unlink()
 
 
 def _merge_command_groups(cmd_group_list, cmd_group):

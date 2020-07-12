@@ -1,6 +1,6 @@
 import os
 
-from yo import config, logger
+from yo import config
 
 
 class CommandTypes():
@@ -60,9 +60,6 @@ class CommandGroup(CommandBase):
     def validate(self):
         self.name = self.name.strip()
         assert self.name and ' ' not in self.name, f'Invalid command name: {self}'
-
-        if not self.description:
-            logger.log(f'Warn: no description for: {self.name}')
 
         for cmd in self.commands:
             cmd.validate()
@@ -149,9 +146,6 @@ def {self.name}(args):
     def validate(self):
         assert self.name, f'Invalid command name: {self.name}'
         assert self.invoke, f'No `invoke` found for command: {self.name}'
-
-        if not self.description:
-            logger.log(f'Warn: no description for: {self.name}')
 
 
 def build_invoke_target(origin_invoke: str, plugin_dir: str):
