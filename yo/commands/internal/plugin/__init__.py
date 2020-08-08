@@ -14,10 +14,13 @@ def plugin():
 @plugin.command()
 def init():
     """Init user plugins directory."""
-    logger.log(f'Initialize plugin directory: {config.user_plugin_folder}')
-    config.user_plugin_folder.mkdir(parents=True, exist_ok=True)
-    for example in config.yo_plugin_example_folder.glob('*'):
-        _init_example(example.stem)
+    logger.log(f'Initialize plugin directory: {config.user_plugin_dir}')
+    config.user_plugin_dir.mkdir(parents=True, exist_ok=True)
+    for example in config.yo_plugin_example_dir.glob('*'):
+        if example.is_dir() and not example.stem.startswith('_'):
+            _init_example(example.stem)
+
+    _reload_plugins()
 
 
 @plugin.command()
@@ -39,7 +42,7 @@ def list():
     plugins = get_user_plugins()
     plugin_names = [p.id() for p in plugins]
 
-    output_result = f'User plugins (from {config.user_plugin_folder}): \n'
+    output_result = f'User plugins (from {config.user_plugin_dir}): \n'
     output_result += '\n'.join(plugin_names)
     logger.log(output_result)
 
@@ -50,9 +53,7 @@ def clear():
     _clear_external_cli()
 
 
-@plugin.command()
-def reload():
-    """reload all plugins"""
+def _reload_plugins():
     _clear_external_cli(print_log=False)
 
     plugins = get_user_plugins()
@@ -83,15 +84,9 @@ def reload():
 
 
 @plugin.command()
-def publish():
-    """publish a plugin to plugin center and share to others"""
-    logger.log('Yo~, feature not ready yet :(')
-
-
-@plugin.command()
-def install():
-    """install a plugin from plugin center."""
-    logger.log('Yo~, feature not ready yet :)')
+def reload():
+    """reload all plugins"""
+    _reload_plugins()
 
 
 def _clear_external_cli(print_log=True):
@@ -124,7 +119,7 @@ def _merge_cmd_obj(cmd_group, cmds):
 
 
 def _init_example(example_name):
-    example_from = config.yo_plugin_example_folder / example_name
-    example_to = config.user_plugin_folder / example_name
+    example_from = config.yo_plugin_example_dir / example_name
+    example_to = config.user_plugin_dir / example_name
     logger.log(f'Init plugin example: {example_name} => {example_to}')
     copy_and_overwrite(str(example_from), str(example_to))

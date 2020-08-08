@@ -8,6 +8,7 @@ from pathlib import Path
 
 import click
 
+from yo.config import config
 from yo.models.logger import Logger
 
 logger = Logger()
@@ -171,3 +172,25 @@ def copy_and_overwrite(from_path, to_path):
 
 def detail_error(exception: Exception):
     return f'{type(exception).__name__}: {exception}'
+
+
+def setup_yo_env(plugin_name):
+    config.current_plugin_name = plugin_name
+    config.current_plugin_dir = config.user_plugin_dir / plugin_name
+
+    # add current working dir to PATH
+    working_dir = os.getcwd()
+    sys.path.insert(0, working_dir)
+
+    # change working dir to current plugin dir
+    os.chdir(str(config.current_plugin_dir))
+
+    # prepare yo environment
+    os.environ.setdefault('YO_INSTALL_DIR', str(config.yo_dir))
+    os.environ.setdefault('YO_HOME', str(config.user_folder))
+    os.environ.setdefault('YO_PLUGIN_HOME', str(config.user_plugin_dir))
+    os.environ.setdefault('YO_PLUGIN_DIR', str(config.current_plugin_dir))
+    os.environ.setdefault('YO_PLUGIN_NAME', str(config.current_plugin_name))
+    os.environ.setdefault('YO_INTERNAL_CLI_DIR', str(config.yo_cli_internal))
+    os.environ.setdefault('YO_EXTERNAL_CLI_DIR', str(config.yo_cli_external))
+    os.environ.setdefault('YO_WORKING_DIR', working_dir)

@@ -1,6 +1,7 @@
 import os
+from pathlib import Path
 
-from yo import config
+from yo import config, logger
 
 
 class CommandTypes():
@@ -10,7 +11,6 @@ class CommandTypes():
     python = 'python'
     java = 'java'
     javascript = 'javascript'
-    typescript = 'typescript'
     sql = 'sql'
 
 
@@ -75,7 +75,7 @@ class CommandGroup(ICommand):
 import os
 import sys
 import click
-from yo.utils import logger
+from yo.utils import logger,setup_yo_env
 """
 
         def generate_group():
@@ -87,14 +87,17 @@ def {self.name}():
     pass
 """
             else:
-                invoke_target = _build_invoke_target(self.invoke, self.from_plugin.from_dir)
                 self.command_module_content += f"""
 @click.group(invoke_without_command=True)
-def {self.name}():
+@click.argument('args', nargs=-1)
+def {self.name}(args):
     '''{self.better_comment()}'''
     ctx = click.get_current_context()
     if not ctx.invoked_subcommand:
-        cmd = '{invoke_target}'
+        setup_yo_env('{self.from_plugin.name}')
+
+        cmd = r'{self.invoke}'
+        cmd += ' ' + ' '.join(args)
         os.system({_get_cmd_exec_prefix(self.type)}cmd)
 """
 
@@ -103,9 +106,15 @@ def {self.name}():
                 self.command_module_content += cmd.generate_cli(self.name)
 
         self.command_module_content = ''
-        generate_imports()
-        generate_group()
-        generate_commands()
+
+        if self.type == CommandTypes.native:
+            content = _get_native_plugin_module(self.invoke, self.from_plugin.from_dir)
+            assert content, 'Not able to get native cli module!'
+            self.command_module_content = content
+        else:
+            generate_imports()
+            generate_group()
+            generate_commands()
 
         if write_file:
             cli_module_path = config.yo_cli_external / f'{self.name}.py'
@@ -135,15 +144,16 @@ class Command(ICommand):
     def generate_cli(self, group):
         from yo.models.plugin import Plugin
         assert isinstance(self.from_plugin, Plugin)
-        invoke_target = _build_invoke_target(self.invoke, self.from_plugin.from_dir)
         return f"""
 @{group}.command(context_settings=dict(ignore_unknown_options=True))
 @click.argument('args', nargs=-1)
 def {self.name}(args):
     '''{self.better_comment()}'''
-    logger.vlog(f'Invoke: {self.invoke} => {invoke_target} ' + str(args) )
-    cmd = '{invoke_target} '
-    cmd += ' '.join(args)
+    logger.vlog(r'Invoke: {self.invoke} ' + str(args) )
+    setup_yo_env('{self.from_plugin.name}')
+
+    cmd = r'{self.invoke}'
+    cmd += ' ' + ' '.join(args)
     os.system({_get_cmd_exec_prefix(self.type)}cmd)
 """
 
@@ -152,25 +162,20 @@ def {self.name}(args):
         assert self.invoke, f'No `invoke` found for command: {self.name}'
 
 
-def _build_invoke_target(origin_invoke: str, plugin_dir: str):
-    """Ensure the invoke target is correct."""
-    assert origin_invoke, 'invoke target should not be empty!'
-    cmd_parts = origin_invoke.split(' ')
-    origin_target = cmd_parts[0]
-
-    # if join origin invoke target with plugin folder exists, use it
-    full_origin_target = os.path.abspath(os.path.join(plugin_dir, origin_target))
-    if os.path.exists(full_origin_target):
-        return origin_invoke.replace(origin_target, full_origin_target)
-
-    # maybe it is a command in PATH or full path command, don't touch it
-    else:
-        return origin_invoke
-
-
 def _get_cmd_exec_prefix(cli_type: str):
     """command prefix will like: `python xxx.py` """
     if cli_type == CommandTypes.shell:
         return ''
+    elif cli_type == CommandTypes.javascript:
+        return '"node " + '
     else:
         return f'"{cli_type} " + '
+
+
+def _get_native_plugin_module(invoke_target: str, plugin_dir: str):
+    assert invoke_target, 'Should not be empty invoke target!'
+    full_target = os.path.abspath(os.path.join(plugin_dir, invoke_target))
+    if os.path.exists(full_target):
+        return Path(full_target).read_text(encoding='utf8')
+    else:
+        logger.log(f'ERROR: not such invoke target: {full_target}!')

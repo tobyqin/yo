@@ -1,6 +1,9 @@
 """
 Load plugins cli to yo.
 """
+
+import sys
+
 from yo.config import config
 from yo.utils import get_disabled_cli_modules, detail_error, logger
 
@@ -28,8 +31,9 @@ def load_internal_cli():
 
 def load_external_cli():
     try:
+        sys.path.insert(0, str(config.user_folder))
         cli_modules = get_external_cli()
-        _dynamic_load(f'yo.{config.yo_cli_module_name}.external', cli_modules)
+        _dynamic_load(f'commands', cli_modules)
     except Exception as e:
         logger.log(detail_error(e))
         logger.log('Failed to load external plugins cli, please try `yo plugin reload`')

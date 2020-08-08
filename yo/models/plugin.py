@@ -79,10 +79,10 @@ class PluginSettings():
 
 def get_user_plugins():
     plugins = []
-    if config.user_plugin_folder.exists():
-        for plugin_folder in config.user_plugin_folder.glob('*'):
-            if plugin_folder.is_dir():
-                plugin = Plugin.load_from(plugin_folder)
+    if config.user_plugin_dir.exists():
+        for plugin_dir in config.user_plugin_dir.glob('*'):
+            if plugin_dir.is_dir():
+                plugin = Plugin.load_from(plugin_dir)
                 plugins.append(plugin)
 
     return plugins
